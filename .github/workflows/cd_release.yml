@@ -5,15 +5,20 @@ on:
     tags:
       - 'v*.*.*'  # Dispara cuando se crea un tag tipo v1.0.0
 
+# 🔑 Permisos necesarios para crear releases
+permissions:
+  contents: write   # Da permiso al GITHUB_TOKEN para crear releases
+
 jobs:
   release-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Descargar el código del repositorio
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 🔹 Crear Release en GitHub
+      # 2️⃣ Crear Release en GitHub
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
@@ -28,7 +33,7 @@ jobs:
           draft: false
           prerelease: false
 
-      # 🔹 Desplegar en Render
+      # 3️⃣ Desplegar en Render
       - name: Deploy to Render
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
