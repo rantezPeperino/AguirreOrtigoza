@@ -102,3 +102,8 @@ async def revert(payment_id: str):
     data[STATUS] = STATUS_REGISTRADO
     save_payment_data(payment_id, data)
     return {"payment_id": payment_id, "data": data}
+
+
+@app.get("/")
+async def root():
+    return {"Estamos Arriba"}
