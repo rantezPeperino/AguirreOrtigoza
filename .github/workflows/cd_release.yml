@@ -1,0 +1,47 @@
+name: CD Release + Deploy to Render
+
+on:
+  create:
+    tags:
+      - 'v*.*.*'  # Dispara cuando se crea un tag tipo v1.0.0
+
+# 🔑 Permisos necesarios para crear releases
+permissions:
+  contents: write   # Da permiso al GITHUB_TOKEN para crear releases
+
+jobs:
+  release-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Descargar el código del repositorio
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2️⃣ Crear Release en GitHub
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: "Release ${{ github.ref_name }}"
+          body: |
+            Nueva versión liberada: ${{ github.ref }}
+            Este release fue generado automáticamente por el pipeline de CD.
+          draft: false
+          prerelease: false
+
+      # 3️⃣ Desplegar en Render
+      - name: Deploy to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          echo "🚀 Desplegando en Render..."
+          SERVICE_ID=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" https://api.render.com/v1/services | jq -r '.[0].id')
+          curl -X POST -H "Authorization: Bearer $RENDER_API_KEY" \
+               -H "Content-Type: application/json" \
+               -d "{\"clearCache\":false}" \
+               https://api.render.com/v1/services/$SERVICE_ID/deploys
+          echo "✅ Deploy iniciado en Render"
