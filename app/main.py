@@ -39,9 +39,12 @@ def request_is_valid(data: dict) -> bool:
     if data[PAYMENT_METHOD] == "tarjeta":
         if data[AMOUNT] > 10000:
             return False
+        counter_tarjeta_registrado = 0
         for p in load_all_payments().values():
-           if p[PAYMENT_METHOD] == "tarjeta" and p[STATUS] == STATUS_REGISTRADO:
-               return False
+            if p[PAYMENT_METHOD] == "tarjeta" and p[STATUS] == STATUS_REGISTRADO:
+                counter_tarjeta_registrado += 1
+        if counter_tarjeta_registrado >= 2:
+            return False
     if data[PAYMENT_METHOD] == "paypal":
         if data[AMOUNT] > 5000:
             return False
