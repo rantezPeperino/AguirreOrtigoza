@@ -3,10 +3,10 @@ name: CD Release + Deploy to Render
 on:
   create:
     tags:
-      - 'v*.*.*' # Dispara cuando se crea un tag tipo v1.0.0
+      - 'v*.*.*'
 
 permissions:
-  contents: write # Da permiso al GITHUB_TOKEN para crear releases
+  contents: write
 
 jobs:
   release-and-deploy:
@@ -55,12 +55,9 @@ jobs:
           fi
           
           echo "Iniciando despliegue..."
-
           curl -v -X POST \
             -H "Authorization: Bearer $RENDER_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d '{"clearCache":false}' \
             "https://api.render.com/v1/services/${SERVICE_ID}/deploys"
-
+          
           echo ""
           echo "Despliegue solicitado a Render correctamente."
