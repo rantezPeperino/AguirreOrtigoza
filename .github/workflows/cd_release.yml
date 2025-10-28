@@ -45,7 +45,7 @@ jobs:
               https://api.render.com/v1/services > services.json
           
           echo "Extrayendo SERVICE_ID..."
-          SERVICE_ID=$(jq -r '.[0].id' services.json)
+          SERVICE_ID=$(jq -r '.[0].service.id' services.json)
           echo "SERVICE_ID detectado: $SERVICE_ID"
           
           if [ -z "$SERVICE_ID" ] || [ "$SERVICE_ID" = "null" ]; then
