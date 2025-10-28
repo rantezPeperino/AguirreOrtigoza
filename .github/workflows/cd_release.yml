@@ -14,11 +14,11 @@ jobs:
     environment: RENDER_API_KEY
 
     steps:
-      # 1️⃣ Descargar el código del repositorio
+      # 1️ Descargar el código del repositorio
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Crear Release en GitHub
+      # 2️Crear Release en GitHub
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -33,28 +33,31 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 3️⃣ Instalar jq (solo necesario si querés listar los servicios Render)
+
       - name: Install jq
         run: sudo apt-get install -y jq
 
-      # 4️⃣ Desplegar en Render
-      - name: 🚀 Deploy to Render
+      - name:  Deploy to Render
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         run: |
           echo "🔍 Obteniendo lista de servicios desde Render..."
           curl -s -H "Authorization: Bearer $RENDER_API_KEY" https://api.render.com/v1/services > services.json
-          cat services.json
-
-          echo "📋 Extrayendo SERVICE_ID..."
-          SERVICE_ID=$(cat services.json | jq -r '.[0].id')
-          echo "✅ SERVICE_ID detectado: $SERVICE_ID"
-
-          echo "🚀 Iniciando despliegue..."
+          echo "Extrayendo SERVICE_ID..."
+          SERVICE_ID=$(jq -r '.[0].service.id' services.json)
+          echo "SERVICE_ID detectado: $SERVICE_ID"
+      
+          if [ -z "$SERVICE_ID" ] || [ "$SERVICE_ID" = "null" ]; then
+            echo  ERROR: No se pudo obtener el SERVICE_ID desde Render."
+            cat services.json
+            exit 1
+          fi
+      
+          echo "Iniciando despliegue..."
           curl -X POST \
-               -H "Authorization: Bearer $RENDER_API_KEY" \
-               -H "Content-Type: application/json" \
-               -d '{"clearCache":false}' \
-               https://api.render.com/v1/services/$SERVICE_ID/deploys
-
-          echo "✅ Deploy solicitado a Render correctamente."
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache":false}' \
+            https://api.render.com/v1/services/$SERVICE_ID/deploys
+          echo "Deploy solicitado a Render correctamente."
+      
