@@ -11,7 +11,7 @@ permissions:
 jobs:
   release-and-deploy:
     runs-on: ubuntu-latest
-    environment: RENDER_API_KEY # Vincula el secret del environment (si aplica)
+    environment: RENDER_API_KEY # Vincula el secret del environment
 
     steps:
       # 1. Descargar el código del repositorio
@@ -37,49 +37,38 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      # 4. Desplegar en Render (Con corrección robusta y modo verboso)
-      - name: Deploy to Render (Debug Verboso)
+      # 4. Desplegar en Render (Corregido)
+      - name: Deploy to Render (Corregido: Sin Nueva Línea)
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         run: |
-          # --- DEBUG: Comprobación de la clave ---
-          # Mostramos solo los primeros caracteres de la clave API para verificar su expansión.
-          echo "DEBUG: Valor de RENDER_API_KEY (solo primeros 5 caracteres): ${RENDER_API_KEY:0:5}..."
-          
           # 1. Obtener SERVICE_ID
           echo "Obteniendo lista de servicios desde Render..."
           curl -s -H "Authorization: Bearer $RENDER_API_KEY" \
               https://api.render.com/v1/services > services.json
           
           echo "Extrayendo SERVICE_ID..."
-          # Asume que el servicio a desplegar es el primer elemento de la lista.
           SERVICE_ID=$(jq -r '.[0].service.id' services.json)
           echo "SERVICE_ID detectado: $SERVICE_ID"
           
           if [ -z "$SERVICE_ID" ] || [ "$SERVICE_ID" = "null" ]; then
             echo "ERROR: No se pudo obtener el SERVICE_ID desde Render."
-            echo "Contenido de services.json para diagnóstico:"
             cat services.json
             exit 1
           fi
           
-          # 2. Crear archivo JSON temporal (método más seguro)
+          # 2. Crear archivo JSON temporal con 'echo -n'
           DEPLOY_JSON='{"clearCache":false}'
-          echo "$DEPLOY_JSON" > deploy_payload.json
+          # **CORRECCIÓN FINAL:** echo -n evita el carácter de nueva línea.
+          echo -n "$DEPLOY_JSON" > deploy_payload.json 
           
-          echo "DEBUG: JSON a enviar: $(cat deploy_payload.json)"
-          echo "DEBUG: URL de despliegue: https://api.render.com/v1/services/${SERVICE_ID}/deploys"
+          echo "Iniciando despliegue..."
           
-          # 3. Iniciar despliegue con CURL -v (verboso)
-          echo "Iniciando despliegue (verboso)..."
-          
-          # **CORRECCIÓN ROBUSTA:** Usamos --data-binary @archivo para garantizar la integridad del JSON.
-          # Usamos -v para ver los headers enviados y recibidos.
-          curl -v -X POST \
+          curl -X POST \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
             --data-binary "@deploy_payload.json" \
             "https://api.render.com/v1/services/${SERVICE_ID}/deploys"
             
-          echo "" # Salto de línea para limpiar el log
-          echo "Despliegue solicitado a Render."
+          echo ""
+          echo "Despliegue solicitado a Render correctamente."
