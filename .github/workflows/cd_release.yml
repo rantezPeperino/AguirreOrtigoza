@@ -11,6 +11,7 @@ permissions:
 jobs:
   release-and-deploy:
     runs-on: ubuntu-latest
+    environment: RENDER_API_KEY
 
     steps:
       # 1️⃣ Descargar el código del repositorio
