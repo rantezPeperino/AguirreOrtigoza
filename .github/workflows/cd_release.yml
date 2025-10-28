@@ -5,7 +5,6 @@ on:
     tags:
       - 'v*.*.*'  # Dispara cuando se crea un tag tipo v1.0.0
 
-# 🔑 Permisos necesarios para crear releases
 permissions:
   contents: write   # Da permiso al GITHUB_TOKEN para crear releases
 
@@ -18,20 +17,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Crear Release en GitHub
+      # 2️⃣ Crear Release en GitHub (actualizado)
       - name: Create GitHub Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          release_name: "Release ${{ github.ref_name }}"
+          name: "Release ${{ github.ref_name }}"
           body: |
             Nueva versión liberada: ${{ github.ref }}
             Este release fue generado automáticamente por el pipeline de CD.
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # 3️⃣ Desplegar en Render
       - name: Deploy to Render
