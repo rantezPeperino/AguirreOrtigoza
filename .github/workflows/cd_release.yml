@@ -54,13 +54,12 @@ jobs:
             exit 1
           fi
           
-          printf '{"clearCache":false}' > deploy_payload.json
           echo "Iniciando despliegue..."
 
           curl -v -X POST \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
-            --data-binary "@deploy_payload.json" \
+            -d '{"clearCache":false}' \
             "https://api.render.com/v1/services/${SERVICE_ID}/deploys"
 
           echo ""
