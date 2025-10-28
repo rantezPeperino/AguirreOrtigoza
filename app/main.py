@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, Query, status
+from fastapi import FastAPI, HTTPException, status
 
 STATUS = "status"
 AMOUNT = "amount"
@@ -52,7 +52,7 @@ def request_is_valid(data: dict) -> bool:
 
 @app.get("/payments")
 async def get_all():
-    return load_all_payments()
+    return {'data': load_all_payments()}
 
 @app.post("/payments/{payment_id}", status_code=status.HTTP_201_CREATED)
 async def register(payment_id: str, amount: float, payment_method: str):

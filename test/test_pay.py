@@ -1,80 +1,140 @@
 import shutil
 import unittest
 from fastapi.testclient import TestClient
-from app.main import app, PAYMENTS_DIR, STATUS_PAGADO, STATUS_REGISTRADO
+import sys; sys.path.append("..")
+from app.main import app, STATUS_PAGADO, STATUS_REGISTRADO, STATUS, STATUS_FALLIDO, PAYMENTS_DIR
+from pathlib import Path
+BASE_DIR = Path(__file__).parent 
+print(BASE_DIR)
 
 client = TestClient(app)
 
 class TestPaymentsSuccess(unittest.TestCase):
 
-    def setUp(self):
+    def test_00_setUp(self):
         # Reinicia la carpeta de pagos antes de cada test
         if PAYMENTS_DIR.exists():
             shutil.rmtree(PAYMENTS_DIR)
         PAYMENTS_DIR.mkdir(parents=True, exist_ok=True)
 
     # ----------------------------------------
-    # 1️⃣ GET /payments
+    # POST /payments/{payment_id}
     # ----------------------------------------
-    def test_get_all_initially_empty(self):
-        """Debe devolver un dict vacío al inicio"""
-        r = client.get("/payments")
-        self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.json(), {})
-
-    def test_get_all_after_register(self):
-        """Debe listar los pagos después de registrar uno"""
-        client.post("/payments/test1?amount=1000&payment_method=tarjeta")
-        r = client.get("/payments")
-        self.assertIn("test1", r.json())
-
-    # ----------------------------------------
-    # 2️⃣ POST /payments/{payment_id}
-    # ----------------------------------------
-    def test_register_new_payment(self):
+    def test_01_register_new_payment(self):
         """Debe crear un pago nuevo con estado REGISTRADO"""
-        r = client.post("/payments/abc123?amount=2000&payment_method=tarjeta")
+        r = client.post(
+            "/payments/test1",
+            params={"amount": 4000, "payment_method": "paypal"},
+        )
         self.assertEqual(r.status_code, 201)
-        self.assertEqual(r.json()["data"]["status"], STATUS_REGISTRADO)
+        self.assertEqual(r.json()["data"][STATUS], STATUS_REGISTRADO)
+
+        r = client.post(
+            "/payments/test2",
+            params={"amount": 9000, "payment_method": "tarjeta"},
+        )
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(r.json()["data"][STATUS], STATUS_REGISTRADO)
+
+        r = client.post(
+            "/payments/test3",
+            params={"amount": 6000, "payment_method": "paypal"},
+        )
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(r.json()["data"][STATUS], STATUS_REGISTRADO)
 
     # ----------------------------------------
-    # 3️⃣ POST /payments/{payment_id}/update
+    # POST /payments/{payment_id}/update
     # ----------------------------------------
-    def test_update_payment_amount(self):
+    def test_02_update_payment_amount(self):
         """Debe actualizar el monto del pago"""
-        client.post("/payments/upd1?amount=500&payment_method=tarjeta")
-        r = client.post("/payments/upd1/update?amount=1500")
-#        self.assertEqual(r.status_code, 200)
-#        self.assertEqual(r.json()["data"]["amount"], 1500)
-
-    # ----------------------------------------
-    # 4️⃣ POST /payments/{payment_id}/pay
-    # ----------------------------------------
-    def test_pay_valid_tarjeta(self):
-        """Debe marcar como PAGADO cuando el monto es <=10000"""
-        client.post("/payments/pago1?amount=9000&payment_method=tarjeta")
-        r = client.post("/payments/pago1/pay")
+        r = client.post(
+            "/payments/test1/update",
+            params={"amount": 3000, "payment_method": "paypal"},
+        )
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.json()["data"]["status"], STATUS_PAGADO)
+        self.assertEqual(r.json()["data"]["amount"], 3000)
 
-    def test_pay_valid_paypal(self):
-        """Debe marcar como PAGADO cuando PayPal <=5000"""
-        client.post("/payments/paypal_ok?amount=4500&payment_method=paypal")
-        r = client.post("/payments/paypal_ok/pay")
+    # ----------------------------------------
+    # POST /payments/{payment_id}/pay
+    # ----------------------------------------
+
+    def test_03_pay_valid_paypal(self):
+        """Debe marcar como PAGADO porque PayPal <=5000"""
+        r = client.post("/payments/test1/pay")
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.json()["data"]["status"], STATUS_PAGADO)
+        self.assertEqual(r.json()["data"][STATUS], STATUS_PAGADO)
+
+    def test_04_pay_valid_tarjeta(self):
+        """Debe marcar como PAGADO porque el monto es <=10000"""
+        r = client.post("/payments/test2/pay")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["data"][STATUS], STATUS_PAGADO)
+
+    def test_05_invalid_paypal_over_limit(self):
+        """Debe marcar como FALLIDO porque PayPal >5000"""
+        r = client.post("/payments/test3/pay")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["data"][STATUS], STATUS_FALLIDO)
+
+    def test_06_invalid_tarjeta_over_limit(self):
+        """Debe marcar como FALLIDO porque el monto es >10000"""
+        client.post("/payments/test4", params={"amount": 11000, "payment_method": "tarjeta"})
+        r = client.post("/payments/test4/pay")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["data"][STATUS], STATUS_FALLIDO)
 
     # ----------------------------------------
-    # 5️⃣ POST /payments/{payment_id}/revert
+    # POST /payments/{payment_id}/revert
     # ----------------------------------------
-    def test_revert_to_registrado(self):
+    def test_07_revert_to_registrado(self):
         """Debe revertir el estado a REGISTRADO"""
-        client.post("/payments/rev1?amount=3000&payment_method=tarjeta")
-        client.post("/payments/rev1/pay")
-        r = client.post("/payments/rev1/revert")
+        r = client.post("/payments/test4/revert")
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.json()["data"]["status"], STATUS_REGISTRADO)
+        self.assertEqual(r.json()["data"][STATUS], STATUS_REGISTRADO)
 
+    # ----------------------------------------
+    # Caso especial: límite de 2 pagos con tarjeta REGISTRADOS
+    # ----------------------------------------
+    def test_08_limit_two_tarjeta_registrados(self):
+        """Debe permitir solo 2 pagos con tarjeta en estado REGISTRADO"""
+        
+        # Primer pago con tarjeta (el test4 updateado)
+        client.post("/payments/test4/update", params={"amount": 9000, "payment_method": "tarjeta"})
+
+        # Segundo pago con tarjeta
+        r = client.post("/payments/test5", params={"amount": 8000, "payment_method": "tarjeta"})
+        self.assertEqual(r.status_code, 201)
+
+        # Intento pagar el test4 (debe fallar porque ya hay uno registrado)
+        r = client.post("/payments/test4/pay")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["data"][STATUS], STATUS_FALLIDO)
+
+        # Intento pagar el test5 (NO debe fallar porque ya no hay ninguno registrado)
+        r = client.post("/payments/test5/pay")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["data"][STATUS], STATUS_PAGADO)
+
+        # Revierto el test4 a REGISTRADO
+        r = client.post("/payments/test4/revert")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["data"][STATUS], STATUS_REGISTRADO)
+
+        # Intento pagar el test4 nuevamente (ahora sí debe funcionar)
+        r = client.post("/payments/test4/pay")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["data"][STATUS], STATUS_PAGADO)
+
+    # ----------------------------------------
+    # GET /payments
+    # ----------------------------------------
+    def test_09_get_all_after_register(self):
+        """Debe listar los pagos después de registrar uno"""
+        r = client.get("/payments")
+        body = r.json()
+        self.assertIn("data", body)
+        self.assertTrue(body["data"])
 
 if __name__ == "__main__":
     unittest.main()
