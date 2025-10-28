@@ -3,15 +3,15 @@ name: CD Release + Deploy to Render
 on:
   create:
     tags:
-      - 'v*.*.*'  # Dispara cuando se crea un tag tipo v1.0.0
+      - 'v*.*.*' # Dispara cuando se crea un tag tipo v1.0.0
 
 permissions:
-  contents: write   # Da permiso al GITHUB_TOKEN para crear releases
+  contents: write # Da permiso al GITHUB_TOKEN para crear releases
 
 jobs:
   release-and-deploy:
     runs-on: ubuntu-latest
-    environment: RENDER_API_KEY   # Vincula el secret del environment
+    environment: RENDER_API_KEY # Vincula el secret del environment (si usas Environments en GitHub)
 
     steps:
       # 1. Descargar el código del repositorio
@@ -43,25 +43,31 @@ jobs:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         run: |
           echo "Obteniendo lista de servicios desde Render..."
+          # Guardamos la respuesta de la API de Render en un archivo
           curl -s -H "Authorization: Bearer $RENDER_API_KEY" \
-               https://api.render.com/v1/services > services.json
+              https://api.render.com/v1/services > services.json
           
           echo "Extrayendo SERVICE_ID..."
+          # Asume que el servicio a desplegar es el primer elemento de la lista.
           SERVICE_ID=$(jq -r '.[0].service.id' services.json)
           echo "SERVICE_ID detectado: $SERVICE_ID"
-      
+          
           if [ -z "$SERVICE_ID" ] || [ "$SERVICE_ID" = "null" ]; then
             echo "ERROR: No se pudo obtener el SERVICE_ID desde Render."
+            echo "Contenido de services.json:"
             cat services.json
             exit 1
           fi
-      
+          
           echo "Iniciando despliegue..."
-          JSON=$(printf '{"clearCache":false}')
+          # **CORRECCIÓN APLICADA AQUÍ:** # Se pasa el JSON directamente a -d usando comillas simples para evitar problemas de shell.
           curl -X POST \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "$JSON" \
+            -d '{"clearCache":false}' \
             "https://api.render.com/v1/services/${SERVICE_ID}/deploys"
           
-          echo "Deploy solicitado a Render correctamente."
+          # La respuesta de curl incluye la metadata del despliegue,
+          # no solo "Deploy solicitado a Render correctamente."
+          echo "" # Añade un salto de línea
+          echo "Despliegue solicitado a Render."
