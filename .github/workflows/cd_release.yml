@@ -14,11 +14,11 @@ jobs:
     environment: RENDER_API_KEY   # Vincula el secret del environment
 
     steps:
-      # 1️Descargar el código del repositorio
+      # 1. Descargar el código del repositorio
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Crear Release en GitHub
+      # 2. Crear Release en GitHub
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -33,33 +33,34 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      #  Instalar jq
+      # 3. Instalar jq (para procesar JSON)
       - name: Install jq
         run: sudo apt-get install -y jq
 
-      #  Desplegar en Render
-      - name:  Deploy to Render
+      # 4. Desplegar en Render
+      - name: Deploy to Render
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         run: |
-          echo " Obteniendo lista de servicios desde Render..."
-          curl -s -H "Authorization: Bearer $RENDER_API_KEY" https://api.render.com/v1/services > services.json
+          echo "Obteniendo lista de servicios desde Render..."
+          curl -s -H "Authorization: Bearer $RENDER_API_KEY" \
+               https://api.render.com/v1/services > services.json
           
-          echo " Extrayendo SERVICE_ID..."
+          echo "Extrayendo SERVICE_ID..."
           SERVICE_ID=$(jq -r '.[0].service.id' services.json)
-          echo " SERVICE_ID detectado: $SERVICE_ID"
+          echo "SERVICE_ID detectado: $SERVICE_ID"
       
           if [ -z "$SERVICE_ID" ] || [ "$SERVICE_ID" = "null" ]; then
-            echo " ERROR: No se pudo obtener el SERVICE_ID desde Render."
+            echo "ERROR: No se pudo obtener el SERVICE_ID desde Render."
             cat services.json
             exit 1
           fi
       
-          echo " Iniciando despliegue..."
+          echo "Iniciando despliegue..."
           curl -X POST \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
-            -d '{"clearCache":false}' \
-            https://api.render.com/v1/services/$SERVICE_ID/deploys
+            --data '{"clearCache": false}' \
+            "https://api.render.com/v1/services/${SERVICE_ID}/deploys"
           
-          echo "✅ Deploy solicitado a Render correctamente."
+          echo "Deploy solicitado a Render correctamente."
