@@ -11,14 +11,12 @@ permissions:
 jobs:
   release-and-deploy:
     runs-on: ubuntu-latest
-    environment: RENDER_API_KEY # Vincula el secret del environment
+    environment: RENDER_API_KEY
 
     steps:
-      # 1. Descargar el código del repositorio
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Crear Release en GitHub
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -33,24 +31,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 3. Instalar jq (para procesar JSON)
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      # 4. Desplegar en Render (Corregido y Robusto)
       - name: Deploy to Render
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         run: |
-          # 1. Obtener SERVICE_ID
           echo "Obteniendo lista de servicios desde Render..."
-          # Imprimimos los primeros caracteres de la API Key para depuración.
           echo "DEBUG: API Key inicial: ${RENDER_API_KEY:0:5}..."
+          
           curl -s -H "Authorization: Bearer $RENDER_API_KEY" \
               https://api.render.com/v1/services > services.json
           
           echo "Extrayendo SERVICE_ID..."
-          SERVICE_ID=$(jq -r '.[0].service.id' services.json)
+          SERVICE_ID=$(jq -r '.[0].id' services.json)
           echo "SERVICE_ID detectado: $SERVICE_ID"
           
           if [ -z "$SERVICE_ID" ] || [ "$SERVICE_ID" = "null" ]; then
@@ -59,18 +54,14 @@ jobs:
             exit 1
           fi
           
-          # 2. Crear archivo JSON temporal (CORRECCIÓN: 'echo -n' evita el caracter de nueva línea)
-          DEPLOY_JSON='{"clearCache":false}'
-          echo -n "$DEPLOY_JSON" > deploy_payload.json 
-          
+          printf '{"clearCache":false}' > deploy_payload.json
           echo "Iniciando despliegue..."
-          
-          # Se usa curl en modo verboso (-v) para ver headers y Content-Length
+
           curl -v -X POST \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
             --data-binary "@deploy_payload.json" \
             "https://api.render.com/v1/services/${SERVICE_ID}/deploys"
-            
+
           echo ""
           echo "Despliegue solicitado a Render correctamente."
