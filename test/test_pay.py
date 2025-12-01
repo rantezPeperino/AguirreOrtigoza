@@ -14,7 +14,7 @@ class TestPaymentsSuccess(unittest.TestCase):
         PAYMENTS_DIR.mkdir(parents=True, exist_ok=True)
 
     # ----------------------------------------
-    # 1️⃣ GET /payments
+    # GET /payments
     # ----------------------------------------
     def test_get_all_initially_empty(self):
         """Debe devolver un dict vacío al inicio"""
@@ -29,7 +29,7 @@ class TestPaymentsSuccess(unittest.TestCase):
         self.assertIn("test1", r.json())
 
     # ----------------------------------------
-    # 2️⃣ POST /payments/{payment_id}
+    # POST /payments/{payment_id}
     # ----------------------------------------
     def test_register_new_payment(self):
         """Debe crear un pago nuevo con estado REGISTRADO"""
@@ -38,7 +38,7 @@ class TestPaymentsSuccess(unittest.TestCase):
         self.assertEqual(r.json()["data"]["status"], STATUS_REGISTRADO)
 
     # ----------------------------------------
-    # 3️⃣ POST /payments/{payment_id}/update
+    # POST /payments/{payment_id}/update
     # ----------------------------------------
     def test_update_payment_amount(self):
         """Debe actualizar el monto del pago"""
@@ -48,7 +48,7 @@ class TestPaymentsSuccess(unittest.TestCase):
 #        self.assertEqual(r.json()["data"]["amount"], 1500)
 
     # ----------------------------------------
-    # 4️⃣ POST /payments/{payment_id}/pay
+    # POST /payments/{payment_id}/pay
     # ----------------------------------------
     def test_pay_valid_tarjeta(self):
         """Debe marcar como PAGADO cuando el monto es <=10000"""
@@ -65,7 +65,7 @@ class TestPaymentsSuccess(unittest.TestCase):
         self.assertEqual(r.json()["data"]["status"], STATUS_PAGADO)
 
     # ----------------------------------------
-    # 5️⃣ POST /payments/{payment_id}/revert
+    # POST /payments/{payment_id}/revert
     # ----------------------------------------
     def test_revert_to_registrado(self):
         """Debe revertir el estado a REGISTRADO"""
