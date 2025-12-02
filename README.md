@@ -158,5 +158,8 @@ Cada archivo corresponde a una transacción independiente, identificada por paym
 ------------------------------------------------------------
 
 # 10. Diagrama
-<a href="www.plantuml.com/plantuml/png/fPBVQnf14CVVzwyOyb1EyiEqZu9jn7h1DaGvHIWKPEfExOQzMzaTfIBvtplUUjUxjDYMvYKpusTcvplVkmkCdhUvLMpO4gHs--H04qnnxU0QKWmyc8xXKg8LQf8WeuqBXftVIp9ZZqphFIpG6erILGfNyW_c57Xe3HKC662eDkZPhCm6fN1n6lkvI78qnSrctxauKb9gSrFSvp8XnCS5_re6TKFQnd-k9gYlanhFsdYziz2xAWurlL2gtnUvQnD4fOydwVVL4AxV7bVjmNGocqDtSrgoUp3w-HtcRblmgrDncHD_Sre9VknAU-3BUUIJYZ3w2cBJ5KIwerHwfBCUq7U1GuFjg0okuwGlpbcbq38ykWYI0lchUWFkgFMAwCF-8HlTZsVpRF1-yjnHP0F19tpHNkbBZQLHkS78Ux6M2gsY5266FNXp-ng6df19moLyc4qUovF9eT3_yLB7h74NoLeownDOX_gt1oZrdBY5F16HsjIq_0xtINNJHTLMMmsc28p5YgeXZTzkJ5YMII8fIdTZcoLQkwoq91r8WhCEg016_qICrOeoJviLYxIr2oVZFMeNNkm2NTcaZAATCJnhvI4myZQ077jmtx3I5F_Kd0uU7iQn-nThRs7oiUbgHZloRFx2M5-I3MzZuJ_iFQ-Y-KMV4N4d6hUv_G40" target="_blank">Ir a Diagrama</a>
+<a href="http://www.plantuml.com/plantuml/png/fPBVQnf14CVVzwyOyb1EyiEqZu9jn7h1DaGvHIWKPEfExOQzMzaTfIBvtplUUjUxjDYMvYKpusTcvplVkmkCdhUvLMpO4gHs--H04qnnxU0QKWmyc8xXKg8LQf8WeuqBXftVIp9ZZqphFIpG6erILGfNyW_c57Xe3HKC662eDkZPhCm6fN1n6lkvI78qnSrctxauKb9gSrFSvp8XnCS5_re6TKFQnd-k9gYlanhFsdYziz2xAWurlL2gtnUvQnD4fOydwVVL4AxV7bVjmNGocqDtSrgoUp3w-HtcRblmgrDncHD_Sre9VknAU-3BUUIJYZ3w2cBJ5KIwerHwfBCUq7U1GuFjg0okuwGlpbcbq38ykWYI0lchUWFkgFMAwCF-8HlTZsVpRF1-yjnHP0F19tpHNkbBZQLHkS78Ux6M2gsY5266FNXp-ng6df19moLyc4qUovF9eT3_yLB7h74NoLeownDOX_gt1oZrdBY5F16HsjIq_0xtINNJHTLMMmsc28p5YgeXZTzkJ5YMII8fIdTZcoLQkwoq91r8WhCEg016_qICrOeoJviLYxIr2oVZFMeNNkm2NTcaZAATCJnhvI4myZQ077jmtx3I5F_Kd0uU7iQn-nThRs7oiUbgHZloRFx2M5-I3MzZuJ_iFQ-Y-KMV4N4d6hUv_G40"
+   target="_blank">
+ Link a diagrama
+</a>
 
