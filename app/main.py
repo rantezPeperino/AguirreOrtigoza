@@ -1,3 +1,4 @@
+
 # app/main.py
 from fastapi import FastAPI, HTTPException, status
 from app.constants import (
@@ -8,11 +9,13 @@ from app.repository import PAYMENTS_DIR
 from app.facade import payments_facade
 
 
+
 app = FastAPI()
 
 @app.get("/payments")
 async def get_all():
     return payments_facade.get_all()
+
 
 
 @app.post("/payments/{payment_id}", status_code=status.HTTP_201_CREATED)

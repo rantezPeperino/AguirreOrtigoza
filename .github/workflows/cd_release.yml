@@ -3,21 +3,20 @@ name: CD Release + Deploy to Render
 on:
   create:
     tags:
-      - 'v*.*.*'  # Dispara cuando se crea un tag tipo v1.0.0
+      - 'v*.*.*'
 
 permissions:
-  contents: write   # Da permiso al GITHUB_TOKEN para crear releases
+  contents: write
 
 jobs:
   release-and-deploy:
     runs-on: ubuntu-latest
+    environment: RENDER_API_KEY
 
     steps:
-      # 1️⃣ Descargar el código del repositorio
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Crear Release en GitHub (actualizado)
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -32,15 +31,33 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 3️⃣ Desplegar en Render
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Deploy to Render
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         run: |
-          echo "🚀 Desplegando en Render..."
-          SERVICE_ID=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" https://api.render.com/v1/services | jq -r '.[0].id')
-          curl -X POST -H "Authorization: Bearer $RENDER_API_KEY" \
-               -H "Content-Type: application/json" \
-               -d "{\"clearCache\":false}" \
-               https://api.render.com/v1/services/$SERVICE_ID/deploys
-          echo "✅ Deploy iniciado en Render"
+          echo "Obteniendo lista de servicios desde Render..."
+          echo "DEBUG: API Key inicial: ${RENDER_API_KEY:0:5}..."
+          
+          curl -s -H "Authorization: Bearer $RENDER_API_KEY" \
+              https://api.render.com/v1/services > services.json
+          
+          echo "Extrayendo SERVICE_ID..."
+          SERVICE_ID=$(jq -r '.[0].service.id' services.json)
+          echo "SERVICE_ID detectado: $SERVICE_ID"
+          
+          if [ -z "$SERVICE_ID" ] || [ "$SERVICE_ID" = "null" ]; then
+            echo "ERROR: No se pudo obtener el SERVICE_ID desde Render."
+            cat services.json
+            exit 1
+          fi
+          
+          echo "Iniciando despliegue..."
+          curl -v -X POST \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            "https://api.render.com/v1/services/${SERVICE_ID}/deploys"
+          
+          echo ""
+          echo "Despliegue solicitado a Render correctamente."
