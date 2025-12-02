@@ -3,6 +3,13 @@ Autores:
 Felipe Aguirre  
 Ruben Ortigoza  
 
+
+# Aclaracion.
+## Los cambios que se realizaron, se pensaron para utilizar los test que se realizaron el dia del examen.
+## Los test son los mismos. No se agrego nada, no se modificaron, ni se borraron lineas.
+## Los test se pensaron solamente desde el lado del cliente que consume los end point.
+
+
 # 1. Descripción General
 API pública para la gestión de pagos en línea.  
 Permite registrar, actualizar, pagar y revertir transacciones.  
