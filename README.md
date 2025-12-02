@@ -10,12 +10,6 @@ Aplica validaciones específicas según el método de pago mediante el patrón S
 El sistema almacena pagos en archivos JSON y soporta los estados: REGISTRADO, PAGADO y FALLIDO.  
 Incluye pruebas automatizadas para validar todo el flujo.
 
-------------------------------------------------------------
-
-Se aplico el patrón Strategy, permitiendo separar las reglas de validación según el método de pago (tarjeta, etc)
-Evitamos sobrecargar de condicionales los endpoints.  
-Facilitando agregar nuevos métodos de pago sin modificar el código. 
-
 
 # 2. Estructura del Proyecto
 
@@ -119,7 +113,12 @@ POST https://aguirreortigoza.onrender.com/payments/124/update?amount=99&payment_
 
 ------------------------------------------------------------
 
-# 8. Patrones y Buenas Prácticas
+# 8. Patrones 
+se implementaron esto 3 patrones, 
+Para facilitar el agregado de metodos de pago,
+Pensando en versiones posteriores que puede cambiar la implementacion del negocio se aplico facade.
+Se aplico repository para poder persistir en BD o otro medio sin tener que modificar la persistencia.
+
 
 ## Strategy Pattern
 Permite cambiar la lógica de validación según el método de pago:
@@ -130,6 +129,14 @@ Permite cambiar la lógica de validación según el método de pago:
 
 Uso en el código:
 PaymentValidatorFactory -> devuelve el validador adecuado.
+
+## Facade
+Aísla completamente a FastAPI de la lógica de validación, estados y reglas de negocio.<br> 
+Permitiendo modificar internamente el sistema sin tocar los endpoints.
+
+## Repository
+Permite persistir pagos sin depender de FastAPI ni de la ubicación física de los archivos.<br> 
+Habilitando reemplazar el JSON por base de datos real sin modificar la lógica del sistema.
 
 ------------------------------------------------------------
 
@@ -143,4 +150,5 @@ Cada archivo corresponde a una transacción independiente, identificada por paym
 
 ------------------------------------------------------------
 
-Fin del documento.
+# 10. Diagrama
+[Link Diagrama Secuencia](www.plantuml.com/plantuml/png/fPBVQnf14CVVzwyOyb1EyiEqZu9jn7h1DaGvHIWKPEfExOQzMzaTfIBvtplUUjUxjDYMvYKpusTcvplVkmkCdhUvLMpO4gHs--H04qnnxU0QKWmyc8xXKg8LQf8WeuqBXftVIp9ZZqphFIpG6erILGfNyW_c57Xe3HKC662eDkZPhCm6fN1n6lkvI78qnSrctxauKb9gSrFSvp8XnCS5_re6TKFQnd-k9gYlanhFsdYziz2xAWurlL2gtnUvQnD4fOydwVVL4AxV7bVjmNGocqDtSrgoUp3w-HtcRblmgrDncHD_Sre9VknAU-3BUUIJYZ3w2cBJ5KIwerHwfBCUq7U1GuFjg0okuwGlpbcbq38ykWYI0lchUWFkgFMAwCF-8HlTZsVpRF1-yjnHP0F19tpHNkbBZQLHkS78Ux6M2gsY5266FNXp-ng6df19moLyc4qUovF9eT3_yLB7h74NoLeownDOX_gt1oZrdBY5F16HsjIq_0xtINNJHTLMMmsc28p5YgeXZTzkJ5YMII8fIdTZcoLQkwoq91r8WhCEg016_qICrOeoJviLYxIr2oVZFMeNNkm2NTcaZAATCJnhvI4myZQ077jmtx3I5F_Kd0uU7iQn-nThRs7oiUbgHZloRFx2M5-I3MzZuJ_iFQ-Y-KMV4N4d6hUv_G40)

@@ -1,6 +1,5 @@
-# app/validators.py
 
-from app.main import AMOUNT, PAYMENT_METHOD, STATUS, STATUS_REGISTRADO
+from app.constants import AMOUNT, PAYMENT_METHOD, STATUS, STATUS_REGISTRADO
 
 class PaymentValidator:
     """Estrategia base (Strategy)."""
@@ -15,7 +14,7 @@ class TarjetaValidator(PaymentValidator):
             return False
 
         # Regla 2: máximo 2 pagos REGISTRADOS con tarjeta
-        from app.main import load_all_payments  # import local para evitar ciclo
+        from app.repository import load_all_payments
 
         counter = 0
         for p in load_all_payments().values():
