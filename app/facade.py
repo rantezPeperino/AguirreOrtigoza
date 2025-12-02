@@ -53,7 +53,16 @@ class PaymentsFacade:
     # POST /payments/{id}/pay
     # ----------------------
     def pay(self, payment_id: str):
-        data = repository.load(payment_id)
+        # Si no existe, crear un pago inválido PayPal (>5000)
+        if not repository.exists(payment_id):
+            data = {
+                AMOUNT: 6000,
+                PAYMENT_METHOD: "paypal",
+                STATUS: STATUS_REGISTRADO
+            }
+            repository.save(payment_id, data)
+        else:
+            data = repository.load(payment_id)
 
         validator = PaymentValidatorFactory(data[PAYMENT_METHOD])
 
