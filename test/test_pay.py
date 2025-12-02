@@ -18,7 +18,7 @@ class TestPaymentsSuccess(unittest.TestCase):
         PAYMENTS_DIR.mkdir(parents=True, exist_ok=True)
 
     # ----------------------------------------
-    # POST /payments/{payment_id}
+    # GET /payments
     # ----------------------------------------
     def test_01_register_new_payment(self):
         """Debe crear un pago nuevo con estado REGISTRADO"""
@@ -36,10 +36,14 @@ class TestPaymentsSuccess(unittest.TestCase):
         self.assertEqual(r.status_code, 201)
         self.assertEqual(r.json()["data"][STATUS], STATUS_REGISTRADO)
 
-        r = client.post(
-            "/payments/test3",
-            params={"amount": 6000, "payment_method": "paypal"},
-        )
+
+    # ----------------------------------------
+    # POST /payments/{payment_id}
+    # ----------------------------------------
+    def test_register_new_payment(self):
+        """Debe crear un pago nuevo con estado REGISTRADO"""
+        r = client.post("/payments/abc123?amount=2000&payment_method=tarjeta")
+
         self.assertEqual(r.status_code, 201)
         self.assertEqual(r.json()["data"][STATUS], STATUS_REGISTRADO)
 

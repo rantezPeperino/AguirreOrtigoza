@@ -1,5 +1,5 @@
 {
-  "amount": 1000.0,
+  "amount": 9000.0,
   "payment_method": "tarjeta",
-  "status": "REGISTRADO"
+  "status": "PAGADO"
 }
